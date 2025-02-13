@@ -1,3 +1,6 @@
+import re
+
+
 def transform_item(item):
     """
     Processes an individual record by first pruning and then computing embeddings.
@@ -11,11 +14,20 @@ def transform_item(item):
 
 def prune_item(item):
     """
-    Example pruning: Skip records without a DOI.
-    Extend this with additional filtering logic as needed.
+    Manual pruning of records.
     """
     if not item.get("DOI"):
         return None
+    if not item.get("language") == "en":
+        return None
+    if item.get("abstract"):
+        abstract = item["abstract"]
+        # Remove leading angle-bracketed text (e.g., "<...> ") if present.
+        abstract = re.sub(r'^<[^>]*>\s*', '', abstract)
+        # Remove trailing angle-bracketed text (e.g., " <...>") if present.
+        abstract = re.sub(r'\s*<[^>]*>$', '', abstract)
+        item["abstract"] = abstract
+
     return item
 
 def embed_item(item):
