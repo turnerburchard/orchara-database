@@ -32,6 +32,7 @@ def format_date(date_parts):
     return None
 
 def process_file(filepath):
+    print("Processing file: {}".format(filepath))
     with gzip.open(filepath, 'rt', encoding='utf-8') as f:
         data = json.load(f)
         # Assuming the JSON object has an "items" list
@@ -54,8 +55,9 @@ def process_file(filepath):
             authors = json.dumps(item.get("author")) if item.get("author") else None
             paper_references = json.dumps(item.get("reference")) if item.get("reference") else None
 
+            #print("Inserting")
             cur.execute("""
-                INSERT INTO papers (
+                INSERT INTO public.papers (
                     doi, url, resource_url, member, score,
                     created_timestamp, issn, container_title,
                     issued_date, authors, paper_references
@@ -69,7 +71,7 @@ def process_file(filepath):
 
 data_folder = 'data'
 for filename in os.listdir(data_folder):
-    if filename.endswith('.json'):
+    if filename.endswith('.json.gz'):
         filepath = os.path.join(data_folder, filename)
         print(f"Processing {filepath}...")
         process_file(filepath)

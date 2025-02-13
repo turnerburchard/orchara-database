@@ -5,13 +5,15 @@ services:
     image: postgres:13
     restart: unless-stopped
     environment:
-      POSTGRES_USER: orchera
-      POSTGRES_PASSWORD: orchera
-      POSTGRES_DB: database
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_NAME}
     ports:
-      - "5432:5432"
+      - "${DB_PORT}:5432"
     volumes:
       - postgres-data:/var/lib/postgresql/data
+    env_file:
+      - .env
 
 volumes:
   postgres-data:
