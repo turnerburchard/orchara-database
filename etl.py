@@ -1,16 +1,22 @@
 import os
 from extract import extract_file
-from transform import transform_item
-from load import get_connection, create_table_if_not_exists, insert_item
+from transform.transform import transform_item
+from transform.embedder import Embedder
+from load import create_table_if_not_exists, insert_item
+from util import get_connection
 
 
 def process_file(filepath, cur):
     print(f"Processing file: {filepath}")
     items = extract_file(filepath)
+
+    embedder = Embedder()
+
     for item in items:
         processed = transform_item(item)
         if processed is None:
             continue
+        processed = embedder.embed_item(processed)
         insert_item(cur, processed)
     cur.connection.commit()
     print(f"Finished processing {filepath}")

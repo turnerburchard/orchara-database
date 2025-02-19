@@ -1,22 +1,4 @@
-import os
-import psycopg2
 import json
-from dotenv import load_dotenv
-from util import format_date
-
-
-def get_connection():
-    """
-    Establishes a PostgreSQL connection using credentials from the .env file.
-    """
-    load_dotenv()  # Ensure .env variables are loaded
-    return psycopg2.connect(
-        dbname=os.environ.get('DB_NAME'),
-        user=os.environ.get('DB_USER'),
-        password=os.environ.get('DB_PASSWORD'),
-        host=os.environ.get('DB_HOST'),
-        port=os.environ.get('DB_PORT')
-    )
 
 
 def safe_convert(val):
@@ -56,9 +38,9 @@ COLUMNS = [
     {"name": "volume", "definition": "TEXT", "extractor": lambda item: item.volume},
     {
         "name": "embedding",
-        "definition": "vector(3)",
+        "definition": "vector(384)",
         "extractor": lambda item: ("[" + ",".join(map(str, item.embedding)) + "]") if item.embedding is not None else None,
-        "placeholder": "(%s)::vector(3)"
+        "placeholder": "(%s)::vector(384)"
     }
 ]
 

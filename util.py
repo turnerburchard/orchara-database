@@ -1,5 +1,9 @@
+import os
 from datetime import date
 import json
+
+import psycopg2
+from dotenv import load_dotenv
 
 
 def format_date(date_parts):
@@ -32,3 +36,17 @@ def safe_convert(value):
         return json.loads(json.dumps(value))
     except (TypeError, ValueError):
         return str(value)
+
+
+def get_connection():
+    """
+    Establishes a PostgreSQL connection using credentials from the .env file.
+    """
+    load_dotenv()  # Ensure .env variables are loaded
+    return psycopg2.connect(
+        dbname=os.environ.get('DB_NAME'),
+        user=os.environ.get('DB_USER'),
+        password=os.environ.get('DB_PASSWORD'),
+        host=os.environ.get('DB_HOST'),
+        port=os.environ.get('DB_PORT')
+    )
