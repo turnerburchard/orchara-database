@@ -27,41 +27,41 @@ def safe_convert(val):
     return json.dumps(val) if isinstance(val, (dict, list)) else val
 
 
-# Centralized schema and extraction configuration
 COLUMNS = [
     {"name": "id", "definition": "SERIAL PRIMARY KEY"},
-    {"name": "doi", "definition": "TEXT UNIQUE", "extractor": lambda item: item.get("DOI")},
-    {"name": "isbn", "definition": "TEXT", "extractor": lambda item: safe_convert(item.get("ISBN"))},
-    {"name": "url", "definition": "TEXT", "extractor": lambda item: item.get("URL")},
-    {"name": "resource_url", "definition": "TEXT", "extractor": lambda item: item.get("resource", {}).get("primary", {}).get("URL")},
-    {"name": "member", "definition": "TEXT", "extractor": lambda item: item.get("member")},
-    {"name": "created_timestamp", "definition": "BIGINT", "extractor": lambda item: item.get("created", {}).get("timestamp")},
-    {"name": "issn", "definition": "JSONB", "extractor": lambda item: safe_convert(item.get("ISSN"))},
-    {"name": "container_title", "definition": "JSONB", "extractor": lambda item: safe_convert(item.get("container-title"))},
-    {"name": "issued_date", "definition": "DATE", "extractor": lambda item: format_date(item.get("issued", {}).get("date-parts", [[]])[0]) if item.get("issued", {}).get("date-parts", [[]])[0] else None},
-    {"name": "authors", "definition": "JSONB", "extractor": lambda item: safe_convert(item.get("author"))},
-    {"name": "paper_references", "definition": "JSONB", "extractor": lambda item: safe_convert(item.get("reference"))},
-    {"name": "abstract", "definition": "TEXT", "extractor": lambda item: item.get("abstract")},
-    {"name": "title", "definition": "TEXT", "extractor": lambda item: item.get("title")},
-    {"name": "alternative_id", "definition": "JSONB", "extractor": lambda item: safe_convert(item.get("alternative-id"))},
-    {"name": "article_number", "definition": "TEXT", "extractor": lambda item: item.get("article-number")},
-    {"name": "language", "definition": "TEXT", "extractor": lambda item: item.get("language")},
-    {"name": "license", "definition": "JSONB", "extractor": lambda item: safe_convert(item.get("license"))},
-    {"name": "link", "definition": "JSONB", "extractor": lambda item: safe_convert(item.get("link"))},
-    {"name": "original_title", "definition": "TEXT", "extractor": lambda item: item.get("original-title")},
-    {"name": "page", "definition": "TEXT", "extractor": lambda item: item.get("page")},
-    {"name": "prefix", "definition": "TEXT", "extractor": lambda item: item.get("prefix")},
-    {"name": "published_date", "definition": "DATE", "extractor": lambda item: format_date(item.get("published", {}).get("date-parts", [[]])[0]) if item.get("published", {}).get("date-parts", [[]])[0] else None},
-    {"name": "publisher", "definition": "TEXT", "extractor": lambda item: item.get("publisher")},
-    {"name": "short_container_title", "definition": "TEXT", "extractor": lambda item: safe_convert(item.get("short-container-title"))},
-    {"name": "volume", "definition": "TEXT", "extractor": lambda item: item.get("volume")},
+    {"name": "doi", "definition": "TEXT UNIQUE", "extractor": lambda item: item.doi},
+    {"name": "isbn", "definition": "TEXT", "extractor": lambda item: safe_convert(item.isbn)},
+    {"name": "url", "definition": "TEXT", "extractor": lambda item: item.url},
+    {"name": "resource_url", "definition": "TEXT", "extractor": lambda item: item.resource_url},
+    {"name": "member", "definition": "TEXT", "extractor": lambda item: item.member},
+    {"name": "created_timestamp", "definition": "BIGINT", "extractor": lambda item: item.created_timestamp},
+    {"name": "issn", "definition": "JSONB", "extractor": lambda item: safe_convert(item.issn)},
+    {"name": "container_title", "definition": "JSONB", "extractor": lambda item: safe_convert(item.container_title)},
+    {"name": "issued_date", "definition": "DATE", "extractor": lambda item: item.issued_date},
+    {"name": "authors", "definition": "JSONB", "extractor": lambda item: safe_convert(item.authors)},
+    {"name": "paper_references", "definition": "JSONB", "extractor": lambda item: safe_convert(item.paper_references)},
+    {"name": "abstract", "definition": "TEXT", "extractor": lambda item: item.abstract},
+    {"name": "title", "definition": "TEXT", "extractor": lambda item: item.title},
+    {"name": "alternative_id", "definition": "JSONB", "extractor": lambda item: safe_convert(item.alternative_id)},
+    {"name": "article_number", "definition": "TEXT", "extractor": lambda item: item.article_number},
+    {"name": "language", "definition": "TEXT", "extractor": lambda item: item.language},
+    {"name": "license", "definition": "JSONB", "extractor": lambda item: safe_convert(item.license)},
+    {"name": "link", "definition": "JSONB", "extractor": lambda item: safe_convert(item.link)},
+    {"name": "original_title", "definition": "TEXT", "extractor": lambda item: item.original_title},
+    {"name": "page", "definition": "TEXT", "extractor": lambda item: item.page},
+    {"name": "prefix", "definition": "TEXT", "extractor": lambda item: item.prefix},
+    {"name": "published_date", "definition": "DATE", "extractor": lambda item: item.published_date},
+    {"name": "publisher", "definition": "TEXT", "extractor": lambda item: item.publisher},
+    {"name": "short_container_title", "definition": "TEXT", "extractor": lambda item: safe_convert(item.short_container_title)},
+    {"name": "volume", "definition": "TEXT", "extractor": lambda item: item.volume},
     {
         "name": "embedding",
         "definition": "vector(3)",
-        "extractor": lambda item: ("[" + ",".join(map(str, item.get("embedding"))) + "]") if item.get("embedding") is not None else None,
+        "extractor": lambda item: ("[" + ",".join(map(str, item.embedding)) + "]") if item.embedding is not None else None,
         "placeholder": "(%s)::vector(3)"
     }
 ]
+
 
 
 def create_table_if_not_exists(cur):

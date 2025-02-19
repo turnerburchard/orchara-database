@@ -22,7 +22,6 @@ def main():
     create_table_if_not_exists(cur)
 
     data_folder = 'data/sample'
-    # Process each file independently.
     for filename in os.listdir(data_folder):
         if filename.endswith('.json.gz'):
             filepath = os.path.join(data_folder, filename)
