@@ -2,7 +2,7 @@ version: '3.8'
 
 services:
   postgres:
-    build: .
+    build: ./database
     restart: unless-stopped
     environment:
       POSTGRES_USER: ${DB_USER}
@@ -14,6 +14,25 @@ services:
       - postgres-data:/var/lib/postgresql/data
     env_file:
       - .env
+
+  etl:
+    build: .
+    depends_on:
+      - postgres
+    environment:
+      DB_HOST: postgres
+      DB_USER: ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
+      DB_NAME: ${DB_NAME}
+      DB_PORT: 5432
+    volumes:
+      - ./etl:/app/etl
+      - ./data:/app/data
+    working_dir: /app
+    command: ["python", "etl.py"]
+    env_file:
+      - .env
+    restart: "no"
 
 volumes:
   postgres-data:

@@ -5,6 +5,8 @@ from transform.embedder import Embedder
 from load import create_table_if_not_exists, insert_item
 from util import get_connection
 
+DATA_DIR = 'app/data/sample'
+
 
 def process_file(filepath, cur):
     print(f"Processing file: {filepath}")
@@ -27,7 +29,7 @@ def main():
     cur = conn.cursor()
     create_table_if_not_exists(cur)
 
-    data_folder = 'data/sample'
+    data_folder = DATA_DIR
     for filename in os.listdir(data_folder):
         if filename.endswith('.json.gz'):
             filepath = os.path.join(data_folder, filename)

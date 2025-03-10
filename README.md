@@ -16,3 +16,14 @@ Extract -> Transform -> Load
 
 4. Indexing?
 
+
+TO RUN:
+
+start database and etl:
+docker-compose up -d
+
+start just etl:
+docker-compose up --no-deps --build etl
+
+
+

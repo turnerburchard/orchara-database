@@ -1,15 +1,10 @@
-FROM postgres:13
+FROM python:3.13
 
-# Install build tools and PostgreSQL development files
-RUN apt-get update && apt-get install -y \
-    build-essential \
-    postgresql-server-dev-13 \
-    git
+WORKDIR /app
 
-# Clone, build, and install pgvector
-RUN git clone https://github.com/pgvector/pgvector.git /pgvector && \
-    cd /pgvector && \
-    make && make install && \
-    cd / && rm -rf /pgvector && \
-    apt-get remove -y build-essential postgresql-server-dev-13 git && \
-    apt-get autoremove -y && rm -rf /var/lib/apt/lists/*
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+COPY etl/ ./etl/
+
+CMD ["python", "etl/etl.py"]
