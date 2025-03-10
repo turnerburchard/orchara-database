@@ -29,7 +29,7 @@ services:
       - ./etl:/app/etl
       - ./data:/app/data
     working_dir: /app
-    command: ["python", "etl.py"]
+    command: ["python", "etl/etl.py"]
     env_file:
       - .env
     restart: "no"

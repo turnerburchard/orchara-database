@@ -5,7 +5,7 @@ from transform.embedder import Embedder
 from load import create_table_if_not_exists, insert_item
 from util import get_connection
 
-DATA_DIR = 'app/data/sample'
+DATA_DIR = '/app/data/sample'
 
 
 def process_file(filepath, cur):
