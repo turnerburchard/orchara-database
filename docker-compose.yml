@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   postgres:
     build: ./database
@@ -34,5 +32,49 @@ services:
       - .env
     restart: "no"
 
+  index:
+    build:
+      context: .
+      dockerfile: index/Dockerfile
+    depends_on:
+      etl:
+        condition: service_completed_successfully
+    environment:
+      DB_HOST: postgres
+      DB_USER: ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
+      DB_NAME: ${DB_NAME}
+      DB_PORT: 5432
+    volumes:
+      - ./index:/app/index
+      - hnsw-index:/app/index_data
+    working_dir: /app
+    command: ["python", "index/index.py"]
+    env_file:
+      - .env
+    restart: "no"
+
+  test:
+    build:
+      context: .
+      dockerfile: index/Dockerfile
+    depends_on:
+      - postgres
+      - index
+    environment:
+      DB_HOST: postgres
+      DB_USER: ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
+      DB_NAME: ${DB_NAME}
+      DB_PORT: 5432
+    volumes:
+      - ./index:/app/index
+      - hnsw-index:/app/index_data
+    working_dir: /app
+    command: ["python", "index/test_search.py"]
+    env_file:
+      - .env
+
 volumes:
   postgres-data:
+  hnsw-index:

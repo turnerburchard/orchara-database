@@ -4,8 +4,14 @@ from transform.transform import transform_item
 from transform.embedder import Embedder
 from load import create_table_if_not_exists, insert_item
 from util import get_connection
+from dotenv import load_dotenv
 
-DATA_DIR = '/app/data/sample'
+
+load_dotenv()
+if os.environ.get('SAMPLE_DATA') == 'true':
+    DATA_DIR = '/app/data/sample'
+else:
+    DATA_DIR = '/app/data'
 
 
 def process_file(filepath, cur):
