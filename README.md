@@ -10,7 +10,6 @@ The pipeline processes academic paper metadata from various sources, transforms 
 
 ```
 orchara-database/
-├── api.py              # FastAPI server for database queries
 ├── docker-compose.yml  # Docker services configuration
 ├── Dockerfile         # ETL service container definition
 ├── etl/              # ETL pipeline components
@@ -21,9 +20,6 @@ orchara-database/
 │       └── types.py
 ├── index/            # Vector indexing and search
 │   └── index.py      # Index creation and management
-├── search.py         # Search functionality
-├── summarize.py      # Text summarization utilities
-├── util.py           # Shared utility functions
 └── data/             # Data directory for paper files
 ```
 
