@@ -1,41 +1,40 @@
 import json
+from typing import Any, Dict, List
+from psycopg2.extensions import cursor
 
 
-def safe_convert(val):
+def safe_convert(val: Any) -> Any:
     """
-    If val is a dict or list, returns its JSON string representation.
-    Otherwise, returns val unchanged.
+    Safely converts complex Python objects to JSON strings for database storage.
+    
+    This function handles the conversion of Python dictionaries and lists
+    to JSON strings, while leaving other types unchanged. This is necessary
+    for storing complex data structures in PostgreSQL JSONB columns.
+    
+    Args:
+        val: Value to convert
+        
+    Returns:
+        JSON string if input is dict or list, otherwise the original value
     """
     return json.dumps(val) if isinstance(val, (dict, list)) else val
 
 
-COLUMNS = [
+# Define the database schema and extraction logic
+COLUMNS: List[Dict[str, Any]] = [
     {"name": "id", "definition": "SERIAL PRIMARY KEY"},
     {"name": "doi", "definition": "TEXT UNIQUE", "extractor": lambda item: item.doi},
-    {"name": "isbn", "definition": "TEXT", "extractor": lambda item: safe_convert(item.isbn)},
     {"name": "url", "definition": "TEXT", "extractor": lambda item: item.url},
     {"name": "resource_url", "definition": "TEXT", "extractor": lambda item: item.resource_url},
-    {"name": "member", "definition": "TEXT", "extractor": lambda item: item.member},
-    {"name": "created_timestamp", "definition": "BIGINT", "extractor": lambda item: item.created_timestamp},
-    {"name": "issn", "definition": "JSONB", "extractor": lambda item: safe_convert(item.issn)},
     {"name": "container_title", "definition": "JSONB", "extractor": lambda item: safe_convert(item.container_title)},
     {"name": "issued_date", "definition": "DATE", "extractor": lambda item: item.issued_date},
     {"name": "authors", "definition": "JSONB", "extractor": lambda item: safe_convert(item.authors)},
     {"name": "paper_references", "definition": "JSONB", "extractor": lambda item: safe_convert(item.paper_references)},
     {"name": "abstract", "definition": "TEXT", "extractor": lambda item: item.abstract},
     {"name": "title", "definition": "TEXT", "extractor": lambda item: item.title},
-    {"name": "alternative_id", "definition": "JSONB", "extractor": lambda item: safe_convert(item.alternative_id)},
-    {"name": "article_number", "definition": "TEXT", "extractor": lambda item: item.article_number},
-    {"name": "language", "definition": "TEXT", "extractor": lambda item: item.language},
-    {"name": "license", "definition": "JSONB", "extractor": lambda item: safe_convert(item.license)},
     {"name": "link", "definition": "JSONB", "extractor": lambda item: safe_convert(item.link)},
-    {"name": "original_title", "definition": "TEXT", "extractor": lambda item: item.original_title},
-    {"name": "page", "definition": "TEXT", "extractor": lambda item: item.page},
-    {"name": "prefix", "definition": "TEXT", "extractor": lambda item: item.prefix},
     {"name": "published_date", "definition": "DATE", "extractor": lambda item: item.published_date},
     {"name": "publisher", "definition": "TEXT", "extractor": lambda item: item.publisher},
-    {"name": "short_container_title", "definition": "TEXT", "extractor": lambda item: safe_convert(item.short_container_title)},
-    {"name": "volume", "definition": "TEXT", "extractor": lambda item: item.volume},
     {
         "name": "embedding",
         "definition": "vector(384)",
@@ -45,10 +44,21 @@ COLUMNS = [
 ]
 
 
-
-def create_table_if_not_exists(cur):
+def create_table_if_not_exists(cur: cursor) -> None:
     """
-    Creates the pgvector extension and the papers table dynamically.
+    Creates the database table and required extensions if they don't exist.
+    
+    This function:
+    1. Creates the pgvector extension for vector operations
+    2. Creates the papers table with all required columns
+    3. Uses the COLUMNS definition to dynamically generate the schema
+    
+    Args:
+        cur: Database cursor
+        
+    Note:
+        The function uses IF NOT EXISTS to ensure idempotency.
+        The table schema is defined by the COLUMNS list above.
     """
     cur.execute("CREATE EXTENSION IF NOT EXISTS vector;")
     schema = ",\n    ".join(f"{col['name']} {col['definition']}" for col in COLUMNS)
@@ -56,9 +66,23 @@ def create_table_if_not_exists(cur):
     cur.connection.commit()
 
 
-def insert_item(cur, item):
+def insert_item(cur: cursor, item: Any) -> None:
     """
-    Inserts a record into the papers table using dynamic query construction and UPSERT semantics.
+    Inserts or updates a paper record in the database using UPSERT logic.
+    
+    This function:
+    1. Constructs a dynamic INSERT query based on the COLUMNS definition
+    2. Uses ON CONFLICT (doi) to handle duplicates
+    3. Updates all fields except doi when a duplicate is found
+    4. Handles special cases like vector embeddings
+    
+    Args:
+        cur: Database cursor
+        item: Item instance to insert/update
+        
+    Note:
+        The function uses the DOI as the unique key for upsert operations.
+        All complex objects (dicts, lists) are automatically converted to JSON strings.
     """
     # Exclude the auto-generated 'id'
     insert_cols = [col["name"] for col in COLUMNS if col["name"] != "id"]

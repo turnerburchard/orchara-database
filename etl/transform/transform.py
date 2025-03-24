@@ -1,25 +1,53 @@
 import re
-from typing import Optional
+from typing import Optional, Dict, Any
 from bs4 import BeautifulSoup
 import numpy as np
 
 from transform.types import Item
-
 from util import safe_convert, format_date
 
 
-def transform_item(item):
+def transform_item(item: Dict[str, Any]) -> Optional[Item]:
+    """
+    Main entry point for transforming a paper record.
+    
+    This function orchestrates the transformation process by:
+    1. Pruning the input record to remove unnecessary fields
+    2. Validating required fields and language
+    3. Cleaning and formatting the data
+    
+    Args:
+        item: Raw paper record from the source
+        
+    Returns:
+        Transformed Item instance or None if validation fails
+    """
     pruned = prune_item(item)
     if pruned is None:
         return None
     return pruned
 
-def prune_item(item: dict) -> Optional[Item]:
+
+def prune_item(item: Dict[str, Any]) -> Optional[Item]:
     """
-    Prunes the input record and returns an Item instance.
-    Returns None if the record lacks a DOI or is not in English.
-    Additionally, cleans the abstract by removing leading and trailing
-    angle-bracketed text.
+    Prunes and validates the input record, returning a standardized Item instance.
+    
+    This function performs several key operations:
+    1. Validates required fields (DOI, title, English language)
+    2. Cleans and formats the abstract
+    3. Extracts and formats dates
+    4. Converts complex objects to JSON strings
+    
+    Args:
+        item: Raw paper record from the source
+        
+    Returns:
+        Standardized Item instance or None if validation fails
+        
+    Note:
+        The function ensures that only English papers with valid DOIs
+        and titles are processed. It also handles JATS-formatted abstracts
+        by extracting only the relevant text content.
     """
     if not item.get("DOI"):
         return None
@@ -28,7 +56,6 @@ def prune_item(item: dict) -> Optional[Item]:
     if item.get("language") != "en":
         return None
 
-
     if item.get("abstract"):
         abstract = clean_abstract(item.get("abstract"))
     else:
@@ -36,12 +63,8 @@ def prune_item(item: dict) -> Optional[Item]:
 
     return Item(
         doi=item.get("DOI"),
-        isbn=safe_convert(item.get("ISBN")),
         url=item.get("URL"),
         resource_url=item.get("resource", {}).get("primary", {}).get("URL"),
-        member=item.get("member"),
-        created_timestamp=item.get("created", {}).get("timestamp"),
-        issn=safe_convert(item.get("ISSN")),
         container_title=safe_convert(item.get("container-title")),
         issued_date=(format_date(item.get("issued", {}).get("date-parts", [[]])[0])
                      if item.get("issued", {}).get("date-parts", [[]])[0] else None),
@@ -49,26 +72,33 @@ def prune_item(item: dict) -> Optional[Item]:
         paper_references=safe_convert(item.get("reference")),
         abstract=abstract,
         title=item.get("title")[0],
-        alternative_id=safe_convert(item.get("alternative-id")),
-        article_number=item.get("article-number"),
-        language=item.get("language"),
-        license=safe_convert(item.get("license")),
         link=safe_convert(item.get("link")),
-        original_title=item.get("original-title"),
-        page=item.get("page"),
-        prefix=item.get("prefix"),
         published_date=(format_date(item.get("published", {}).get("date-parts", [[]])[0])
                         if item.get("published", {}).get("date-parts", [[]])[0] else None),
         publisher=item.get("publisher"),
-        short_container_title=safe_convert(item.get("short-container-title")),
-        volume=item.get("volume"),
-        embedding= np.array([])
+        embedding=np.array([])
     )
+
 
 def clean_abstract(jats_abstract: str) -> str:
     """
-    Extracts text only from <jats:p> tags, concatenating them into a single line.
-    This omits any text from tags like <jats:title> and ensures the result is a single line.
+    Cleans and formats a JATS-formatted abstract into plain text.
+    
+    This function:
+    1. Parses the JATS XML structure
+    2. Extracts only the content from <jats:p> tags
+    3. Joins paragraphs with spaces
+    4. Normalizes whitespace
+    
+    Args:
+        jats_abstract: Abstract text in JATS XML format
+        
+    Returns:
+        Cleaned abstract text as a single line
+        
+    Example:
+        Input: "<jats:p>First paragraph</jats:p><jats:p>Second paragraph</jats:p>"
+        Output: "First paragraph Second paragraph"
     """
     soup = BeautifulSoup(jats_abstract, 'html.parser')
     paragraphs = soup.find_all('jats:p')
