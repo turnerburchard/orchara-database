@@ -5,6 +5,9 @@ from transform.embedder import Embedder
 from load import create_table_if_not_exists, insert_item
 from util import get_connection
 from dotenv import load_dotenv
+from validate_db import validate_database
+import json
+import sys
 
 
 load_dotenv()
@@ -33,17 +36,41 @@ def process_file(filepath, cur):
 def main():
     conn = get_connection()
     cur = conn.cursor()
-    create_table_if_not_exists(cur)
-
-    data_folder = DATA_DIR
-    for filename in os.listdir(data_folder):
-        if filename.endswith('.json.gz'):
-            filepath = os.path.join(data_folder, filename)
-            process_file(filepath, cur)
-
-    cur.close()
-    conn.close()
+    
+    try:
+        # Create table if it doesn't exist
+        create_table_if_not_exists(cur)
+        
+        # Process all files
+        data_folder = DATA_DIR
+        for filename in os.listdir(data_folder):
+            if filename.endswith('.json.gz'):
+                filepath = os.path.join(data_folder, filename)
+                process_file(filepath, cur)
+        
+        # Run validation after all files are processed
+        print("\nRunning database validation...")
+        validation_result = validate_database(conn)
+        
+        # Write validation results to file
+        with open("etl/last_run.json", "w") as f:
+            json.dump(validation_result, f, indent=2)
+            
+        # Exit with error if validation failed
+        if not validation_result["validation"]["overall_valid"]:
+            print("Validation failed:", validation_result["notes"])
+            return 1
+            
+        print("Validation successful:", validation_result)
+        return 0
+        
+    except Exception as e:
+        print(f"Error during ETL process: {str(e)}")
+        return 1
+    finally:
+        cur.close()
+        conn.close()
 
 
 if __name__ == '__main__':
-    main()
+    sys.exit(main())

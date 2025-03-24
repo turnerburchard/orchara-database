@@ -27,7 +27,6 @@ services:
       - ./etl:/app/etl
       - ./data:/app/data
     working_dir: /app
-    command: ["python", "etl/etl.py"]
     env_file:
       - .env
     restart: "no"
@@ -59,8 +58,10 @@ services:
       context: .
       dockerfile: index/Dockerfile
     depends_on:
-      - postgres
-      - index
+      etl:
+        condition: service_completed_successfully
+      index:
+        condition: service_completed_successfully
     environment:
       DB_HOST: postgres
       DB_USER: ${DB_USER}
