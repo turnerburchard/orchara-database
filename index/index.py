@@ -1,7 +1,7 @@
 import json
 import hnswlib
 import numpy as np
-from etl.util import get_connection
+from common.util import get_connection
 
 
 def get_total_count():

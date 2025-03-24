@@ -3,9 +3,9 @@ from extract import extract_file
 from transform.transform import transform_item
 from transform.embedder import Embedder
 from load import create_table_if_not_exists, insert_item
-from util import get_connection
+from common.util import get_connection
 from dotenv import load_dotenv
-from validate_db import validate_database
+from validate import validate_database
 import json
 import sys
 

@@ -1,11 +1,11 @@
 import os
 import json
-from datetime import datetime
+from datetime import datetime, UTC
 import subprocess
 from typing import Dict, Any, List, Tuple
 import numpy as np
-from etl.util import get_connection, safe_convert
-from etl.load import COLUMNS
+from common.util import get_connection, safe_convert
+from load import COLUMNS
 from index.index import get_total_count, fetch_embeddings_in_batches
 
 def get_git_commit() -> str:
@@ -92,12 +92,12 @@ def check_data_quality(conn) -> Dict[str, Any]:
         null_embeddings = cur.fetchone()[0]
         checks["null_embeddings"] = null_embeddings
         
-        # Check vector dimensions
+        # Check vector dimensions using vector_dims function
         cur.execute("""
             SELECT COUNT(*) 
             FROM papers 
             WHERE embedding IS NOT NULL 
-            AND array_length(embedding, 1) != 384
+            AND vector_dims(embedding) != 384
         """)
         invalid_dimensions = cur.fetchone()[0]
         checks["invalid_dimensions"] = invalid_dimensions
@@ -144,7 +144,7 @@ def validate_embeddings(conn) -> Dict[str, Any]:
 def validate_database(conn) -> Dict[str, Any]:
     """Main validation function that runs all checks"""
     validation_result = {
-        "timestamp": datetime.utcnow().isoformat(),
+        "timestamp": datetime.now(UTC).isoformat(),
         "rows_loaded": get_total_count(),
         "etl_commit": get_git_commit(),
         "validation": {},
@@ -195,7 +195,7 @@ def main():
         validation_result = validate_database(conn)
         
         # Write validation results to file
-        with open("etl/last_run.json", "w") as f:
+        with open("data/validation/last_run.json", "w") as f:
             json.dump(validation_result, f, indent=2)
             
         # Exit with error if validation failed

@@ -15,18 +15,23 @@ orchara-database/
 ├── etl/              # ETL pipeline components
 │   ├── load.py       # Database loading logic
 │   ├── extract.py    # Data extraction from source
+│   ├── validate.py   # Database validation logic
 │   └── transform/    # Data transformation logic
 │       ├── transform.py
 │       └── types.py
 ├── index/            # Vector indexing and search
 │   └── index.py      # Index creation and management
-└── data/             # Data directory for paper files
+├── data/             # Data directory for paper files
+│   └── validation/   # Validation results and reports
+└── common/           # Shared utilities
+    └── util.py       # Common utility functions
 ```
 
 Key components:
 - `etl/`: Contains the core ETL pipeline logic for processing papers
 - `index/`: Handles vector indexing and similarity search functionality
-- `data/`: Directory for storing paper data files
+- `data/`: Directory for storing paper data files and validation results
+- `common/`: Shared utilities used across the project
 
 ## Data Model
 
@@ -161,6 +166,53 @@ Required environment variables:
 ## License
 
 [Add your license information here]
+
+## Data Validation
+
+The pipeline includes comprehensive data validation that runs after the ETL process completes. Validation results are stored in `data/validation/last_run.json` and include:
+
+- **Table Structure**: Verifies all required columns exist with correct types
+- **Data Quality**:
+  - Required fields (DOI, title, abstract) are present and non-empty
+  - Date ranges are valid
+  - No NULL embeddings
+  - All embeddings have correct dimensions (384)
+- **Embedding Quality**:
+  - No NaN or infinite values
+  - All vectors are properly normalized
+  - Correct dimensionality
+
+Example validation output:
+```json
+{
+  "timestamp": "2025-03-24T21:46:27.639112+00:00",
+  "rows_loaded": 4599,
+  "validation": {
+    "table_structure": {"valid": true},
+    "data_quality": {
+      "doi_null_count": 0,
+      "title_null_count": 0,
+      "abstract_null_count": 0,
+      "doi_empty_count": 0,
+      "title_empty_count": 0,
+      "abstract_empty_count": 2713,
+      "date_range": {
+        "min": "1908-01-01",
+        "max": "2024-07-01",
+        "null_count": 1740
+      },
+      "null_embeddings": 0,
+      "invalid_dimensions": 0
+    },
+    "embeddings": {
+      "valid": true,
+      "issues": []
+    },
+    "overall_valid": true
+  },
+  "notes": ["Found 2713 empty strings in abstract"]
+}
+```
 
 
 

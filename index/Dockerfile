@@ -15,7 +15,6 @@ COPY etl/ ./etl/
 
 # Copy index files
 COPY index/index.py index/index.py
-COPY index/test_search.py index/test_search.py
 
 # Copy requirements
 COPY requirements.txt requirements.txt
