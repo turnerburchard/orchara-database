@@ -28,6 +28,8 @@ services:
       - ./etl:/app/etl
       - ./index:/app/index
       - ./data:/app/data
+      - ./common:/app/common
+      - index-data:/app/data/index
     working_dir: /app
     env_file:
       - .env
@@ -48,7 +50,9 @@ services:
       DB_PORT: 5432
     volumes:
       - ./index:/app/index
-      - hnsw-index:/app/index_data
+      - ./data:/app/data
+      - ./common:/app/common
+      - index-data:/app/data/index
     working_dir: /app
     command: ["python", "index/index.py"]
     env_file:
@@ -72,7 +76,9 @@ services:
       DB_PORT: 5432
     volumes:
       - ./index:/app/index
-      - hnsw-index:/app/index_data
+      - ./data:/app/data
+      - ./common:/app/common
+      - index-data:/app/data/index
     working_dir: /app
     command: ["python", "index/test_search.py"]
     env_file:
@@ -80,4 +86,4 @@ services:
 
 volumes:
   postgres-data:
-  hnsw-index:
+  index-data:

@@ -1,6 +1,7 @@
 import json
 import hnswlib
 import numpy as np
+import os
 from common.util import get_connection
 
 
@@ -36,11 +37,19 @@ def fetch_embeddings_in_batches(batch_size=10000):
     conn.close()
 
 
-def build_and_save_index(index_path="hnsw_index.bin", mapping_path="id_mapping.json", batch_size=10000):
+def build_and_save_index(batch_size=10000):
     """
     Builds an HNSWlib index using cosine similarity in batches and saves the index and
     ID mapping to disk. This method avoids loading the entire dataset into memory.
     """
+    # Define paths for index files - these will be in the persistent volume
+    index_dir = "/app/data/index"
+    index_path = os.path.join(index_dir, "hnsw_index.bin")
+    mapping_path = os.path.join(index_dir, "id_mapping.json")
+
+    # Ensure the directory exists
+    os.makedirs(index_dir, exist_ok=True)
+
     total_count = get_total_count()
     print(f"Total number of papers: {total_count}")
 
@@ -82,14 +91,16 @@ def build_and_save_index(index_path="hnsw_index.bin", mapping_path="id_mapping.j
         current_offset += num_batch
         print(f"Processed {current_offset} / {total_count} papers.")
 
-    # Save the index to disk.
+    # Save the index to disk in the persistent volume
+    print(f"Saving HNSW index to persistent volume at {index_path}")
     index.save_index(index_path)
-    print(f"HNSW index saved to {index_path}")
+    print(f"HNSW index saved successfully")
 
-    # Save the mapping from internal index to paper ID.
+    # Save the mapping from internal index to paper ID
+    print(f"Saving ID mapping to persistent volume at {mapping_path}")
     with open(mapping_path, "w") as f:
         json.dump(id_map, f)
-    print(f"ID mapping saved to {mapping_path}")
+    print(f"ID mapping saved successfully")
 
 
 def main():
