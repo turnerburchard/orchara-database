@@ -2,10 +2,8 @@ import os
 from extract import extract_file
 from transform.transform import transform_item
 from transform.embedder import Embedder
-from load import create_table_if_not_exists, insert_item
 from common.util import get_connection
 from dotenv import load_dotenv
-from validate import validate_database
 import json
 import sys
 
@@ -28,6 +26,8 @@ def process_file(filepath, cur):
         if processed is None:
             continue
         processed = embedder.embed_item(processed)
+        # Import here to avoid circular dependency
+        from load.load import insert_item
         insert_item(cur, processed)
     cur.connection.commit()
     print(f"Finished processing {filepath}")
@@ -38,6 +38,10 @@ def main():
     cur = conn.cursor()
     
     try:
+        # Import here to avoid circular dependency
+        from load.load import create_table_if_not_exists
+        from validator import validate_database
+        
         # Create table if it doesn't exist
         create_table_if_not_exists(cur)
         

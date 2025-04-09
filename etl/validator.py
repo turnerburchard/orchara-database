@@ -5,7 +5,7 @@ import subprocess
 from typing import Dict, Any, List, Tuple
 import numpy as np
 from common.util import get_connection, safe_convert
-from load import COLUMNS
+from load.schema import COLUMNS
 from index.index import get_total_count, fetch_embeddings_in_batches
 
 def get_git_commit() -> str:

@@ -1,6 +1,7 @@
 import json
 from typing import Any, Dict, List
 from psycopg2.extensions import cursor
+from .schema import COLUMNS, safe_convert
 
 
 def safe_convert(val: Any) -> Any:

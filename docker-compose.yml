@@ -23,7 +23,7 @@ services:
       DB_PASSWORD: ${DB_PASSWORD}
       DB_NAME: ${DB_NAME}
       DB_PORT: 5432
-      PYTHONPATH: /app
+      PYTHONPATH: /app:/app/etl
     volumes:
       - ./etl:/app/etl
       - ./index:/app/index
